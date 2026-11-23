@@ -37,24 +37,94 @@
         }
 
         .pc-sidebar {
-            width: 250px;
+            width: 260px;
             transition: all 0.3s ease-in-out;
-        }
-
-        .pc-sidebar .navbar-content {
-            flex: 1;
-            overflow-y: scroll;
-            /* pastikan pakai scroll */
-            padding-right: 10px;
-            /* tambahkan space buat scrollbar */
-            margin-right: -10px;
-            /* supaya gak ngedorong konten */
-            padding-bottom: 80px;
-            /* jaga agar item bawah gak ketimpa */
         }
 
         .pc-sidebar .m-header img.logo-lg {
             height: 40px;
+        }
+
+        .pc-header {
+            background: rgba(255, 255, 255, 0.96);
+            border-bottom: 1px solid #e9edf5;
+            box-shadow: 0 6px 24px rgba(37, 54, 94, 0.04);
+        }
+
+        .pc-header .bumdes-header-brand {
+            color: #27324a;
+            font-size: 0.96rem;
+            letter-spacing: 0.01em;
+        }
+
+        .pc-header .bumdes-brand-copy {
+            line-height: 1.15;
+        }
+
+        .pc-header .bumdes-brand-subtitle {
+            display: block;
+            margin-top: 3px;
+            color: #7d879b;
+            font-size: 0.65rem;
+            font-weight: 400;
+            letter-spacing: 0;
+        }
+
+        .pc-header .bumdes-header-status {
+            display: inline-flex;
+            align-items: center;
+            gap: 7px;
+            padding: 7px 10px;
+            border: 1px solid #e3eafa;
+            border-radius: 99px;
+            color: #53617b;
+            background: #f3f6ff;
+            font-size: 0.68rem;
+            font-weight: 500;
+        }
+
+        .pc-header .bumdes-header-status::before {
+            width: 7px;
+            height: 7px;
+            border-radius: 50%;
+            background: #22b887;
+            box-shadow: 0 0 0 3px rgba(34, 184, 135, 0.12);
+            content: "";
+        }
+
+        .pc-header .bumdes-profile-copy {
+            display: inline-flex;
+            flex-direction: column;
+            gap: 2px;
+            margin-left: 8px;
+            line-height: 1.15;
+            text-align: left;
+        }
+
+        .pc-header .bumdes-profile-copy strong {
+            color: #27324a;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+
+        .pc-header .bumdes-profile-copy small {
+            color: #7d879b;
+            font-size: 0.63rem;
+        }
+
+        .pc-header .pc-head-link {
+            transition: color 0.18s ease, background-color 0.18s ease;
+        }
+
+        .pc-header .pc-head-link:hover {
+            color: #5268d8;
+        }
+
+        @media (max-width: 575.98px) {
+            .pc-header .bumdes-header-status,
+            .pc-header .bumdes-brand-subtitle {
+                display: none;
+            }
         }
     </style>
 </head>
@@ -81,17 +151,26 @@
                     </li>
                 </ul>
 
-                <a href="<?= base_url('dashboard'); ?>" class="d-flex align-items-center text-decoration-none ms-3">
+                <a href="<?= base_url('dashboard'); ?>" class="bumdes-header-brand d-flex align-items-center text-decoration-none ms-3">
                     <img src="<?= base_url('assets/images/logo_bumdes.png'); ?>" alt="Logo BUMDes" style="height:40px;">
-                    <span class="ms-2 fw-bold text-dark">Aplikasi BUMDes</span>
+                    <span class="bumdes-brand-copy ms-2 fw-bold text-dark">
+                        Aplikasi BUMDes
+                        <small class="bumdes-brand-subtitle">Sukses Mandiri · Desa Gelam Jaya</small>
+                    </span>
                 </a>
             </div>
 
             <ul class="list-unstyled d-flex mb-0">
+                <li class="pc-h-item d-flex align-items-center me-2">
+                    <span class="bumdes-header-status">Sistem aktif</span>
+                </li>
                 <li class="dropdown pc-h-item header-user-profile">
                     <a class="pc-head-link dropdown-toggle arrow-none me-0" data-bs-toggle="dropdown" href="#" role="button">
                         <img src="<?= base_url('assets/images/user/avatar-2.jpg') ?>" alt="user-image" class="user-avtar">
-                        <span><?= $this->session->userdata('username') ?></span>
+                        <span class="bumdes-profile-copy">
+                            <strong><?= $this->session->userdata('username') ?></strong>
+                            <small><?= ucfirst($this->session->userdata('role')) ?></small>
+                        </span>
                     </a>
                     <div class="dropdown-menu dropdown-user-profile dropdown-menu-end pc-h-dropdown">
                         <div class="dropdown-header">

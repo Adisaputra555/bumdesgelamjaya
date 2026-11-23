@@ -23,6 +23,19 @@ class Angsuran extends CI_Controller
     public function index()
     {
         $data['title'] = 'Data Angsuran Terbaru';
+        $data['pinjaman'] = [];
+        foreach ($this->Pinjaman_model->get_all() as $pinjaman) {
+            $jumlah_pinjam = floatval($pinjaman->jumlah_pinjam ?? 0);
+            $bunga = floatval($pinjaman->bunga ?? 0);
+            $tenor = max(1, intval($pinjaman->tenor ?? 0));
+            $total_tagihan = $jumlah_pinjam + ($jumlah_pinjam * $bunga / 100 * $tenor);
+            $total_dibayar = $this->Angsuran_model->get_total_bayar($pinjaman->id);
+
+            if ($total_tagihan > $total_dibayar) {
+                $data['pinjaman'][] = $pinjaman;
+            }
+        }
+
         $this->load->view('_partials/header', $data);
         $this->load->view('_partials/sidebar', $data);
         $this->load->view('admin/angsuran', $data);
@@ -35,9 +48,9 @@ class Angsuran extends CI_Controller
         $data = $this->Angsuran_model->get_latest_per_pinjaman($search);
 
         foreach ($data as &$row) {
-            $row['status'] = ($row['status'] == 'Lunas')
+            $row['status'] = ($row['status_label'] === 'Lunas')
                 ? '<span class="badge bg-success">Lunas</span>'
-                : '<span class="badge bg-warning">Belum Lunas</span>';
+                : '<span class="badge bg-warning text-dark">Aktif</span>';
 
             if (!empty($row['bukti_pembayaran']) && file_exists(FCPATH . 'uploads/bukti/' . basename($row['bukti_pembayaran']))) {
                 $row['bukti_pembayaran'] = base_url('uploads/bukti/' . basename($row['bukti_pembayaran']));
@@ -48,7 +61,7 @@ class Angsuran extends CI_Controller
 
         $this->output
             ->set_content_type('application/json')
-            ->set_output(json_encode(['data' => $data]));
+            ->set_output(json_encode(['success' => true, 'data' => $data]));
     }
 
     public function store()

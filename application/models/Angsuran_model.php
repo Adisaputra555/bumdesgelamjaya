@@ -36,16 +36,13 @@ class Angsuran_model extends CI_Model
             // Hitung total pinjaman + bunga flat (sesuai tenor)
             $jumlah_pinjam  = floatval($pinjaman['jumlah_pinjam']);
             $bunga          = floatval($pinjaman['bunga']);
-            $tenor          = intval($pinjaman['tenor']);
+            $tenor          = max(1, intval($pinjaman['tenor']));
             $total_pinjaman = $jumlah_pinjam + ($jumlah_pinjam * $bunga / 100 * $tenor);
 
             // Total sudah dibayar
             $total_bayar = $this->get_total_bayar($pinjaman['pinjaman_id']);
             $sisa = max(0, $total_pinjaman - $total_bayar);
-
-            $status_badge = ($sisa <= 0)
-                ? '<span class="badge bg-success">Lunas</span>'
-                : '<span class="badge bg-warning">Belum Lunas</span>';
+            $status = ($sisa <= 0) ? 'Lunas' : 'Aktif';
 
             // Ambil bukti terakhir yang ada
             $latest_bukti = null;
@@ -66,7 +63,13 @@ class Angsuran_model extends CI_Model
                 'tanggal_bayar'    => $latest_angsuran['tanggal_bayar'] ?? '-',
                 'bukti_pembayaran' => $buktiUrl,
                 'sisa_pinjaman'    => 'Rp ' . number_format($sisa, 0, ',', '.'),
-                'status'           => $status_badge
+                'sisa_pinjaman_raw' => $sisa,
+                'total_dibayar'    => $total_bayar,
+                'total_tagihan'    => $total_pinjaman,
+                'jumlah_transaksi' => count($angsuran_all),
+                'tenor'            => $tenor,
+                'angsuran_per_bulan' => round($total_pinjaman / $tenor, 0),
+                'status_label'     => $status
             ];
         }
 

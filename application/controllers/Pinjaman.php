@@ -89,21 +89,18 @@ class Pinjaman extends CI_Controller
         }
 
         foreach ($pinjaman as $row) {
-            $total_dibayar_row = $this->db->select_sum('jumlah_bayar')
-                ->where('pinjaman_id', $row->id)
-                ->where('deleted', 0)
-                ->get('angsuran')
-                ->row_array();
-            $total_dibayar = floatval($total_dibayar_row['jumlah_bayar'] ?? 0);
-
-            $total_pinjaman = floatval($row->jumlah_pinjam ?? 0) + (floatval($row->jumlah_pinjam ?? 0) * floatval($row->bunga ?? 0) / 100);
+            $jumlah_pinjam = floatval($row->jumlah_pinjam ?? 0);
+            $bunga = floatval($row->bunga ?? 0);
+            $tenor = max(1, intval($row->tenor ?? 0));
+            $total_dibayar = $this->Pinjaman_model->get_total_dibayar($row->id);
+            $total_pinjaman = $jumlah_pinjam + ($jumlah_pinjam * $bunga / 100 * $tenor);
             $sisa_pinjaman = max(0, $total_pinjaman - $total_dibayar);
 
-            $status_text = ($sisa_pinjaman <= 0) ? 'Lunas' : 'Belum Lunas';
+            $status_text = ($sisa_pinjaman <= 0) ? 'Lunas' : 'Aktif';
 
             // Badge warna status
             $status_badge = ($status_text === 'Lunas') ? '<span class="badge bg-success">Lunas</span>' :
-                '<span class="badge bg-danger">Belum Lunas</span>';
+                '<span class="badge bg-warning text-dark">Aktif</span>';
 
             $btnBayar = '<button class="btn btn-warning btn-sm me-1 btn-bayar" data-id="' . $row->id . '" title="Bayar Cicilan">
                         <i class="fas fa-money-bill-wave"></i> Bayar
@@ -117,11 +114,18 @@ class Pinjaman extends CI_Controller
                 'id'             => $row->id ?? 0,
                 'nama_anggota'   => $row->nama_anggota ?? '-',
                 'tanggal_pinjam' => $row->tanggal_pinjam ?? '-',
-                'jumlah_pinjam'  => 'Rp ' . number_format($row->jumlah_pinjam ?? 0, 0, ',', '.'),
-                'bunga'          => ($row->bunga ?? 0) . '%',
-                'tenor'          => ($row->tenor ?? 0) . ' bulan',
+                'jumlah_pinjam'  => 'Rp ' . number_format($jumlah_pinjam, 0, ',', '.'),
+                'jumlah_pinjam_raw' => $jumlah_pinjam,
+                'bunga'          => $bunga . '%',
+                'bunga_raw'      => $bunga,
+                'tenor'          => $tenor,
+                'total_tagihan'  => $total_pinjaman,
+                'total_dibayar'  => $total_dibayar,
+                'sisa_pinjaman'  => $sisa_pinjaman,
+                'angsuran_per_bulan' => round($total_pinjaman / $tenor, 0),
+                'status_label'   => $status_text,
                 'status'         => $status_badge,
-                'created_at'     => $row->created_at ?? '-',  // <-- PENTING!
+                'created_at'     => $row->created_at ?? '-',
                 'aksi'           => $btnBayar . ' ' . $btnHapus
             ];
         }
@@ -185,7 +189,7 @@ class Pinjaman extends CI_Controller
         $total_dibayar = floatval($total_dibayar_row['jumlah_bayar'] ?? 0);
 
         // Hitung total pinjaman + bunga
-        $total_pinjaman = floatval($pinjaman->jumlah_pinjam ?? 0) + (floatval($pinjaman->jumlah_pinjam ?? 0) * floatval($pinjaman->bunga ?? 0) / 100);
+        $total_pinjaman = floatval($pinjaman->jumlah_pinjam ?? 0) + (floatval($pinjaman->jumlah_pinjam ?? 0) * floatval($pinjaman->bunga ?? 0) / 100 * max(1, intval($pinjaman->tenor ?? 0)));
 
         // Cek status lunas
         if ($total_dibayar < $total_pinjaman) {
